@@ -246,3 +246,28 @@ function is_valid_item_status($status){
   }
   return $is_valid;
 }
+
+//DBから購入数上位３位を取得
+function get_item_rank($db){
+  $sql = "
+    SELECT
+      order_details.item_name,
+      SUM(order_details.amount) AS total_order,
+      items.price,
+      items.image
+    FROM
+      order_details
+    JOIN
+      items
+    ON
+      order_details.item_name = items.name
+    GROUP BY
+      item_name
+    ORDER BY
+      total_order DESC
+    LIMIT
+      3
+  ";
+  //DBのSQLを実行し１行のみレコード取得
+  return fetch_all_query($db, $sql);
+}
