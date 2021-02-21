@@ -5,8 +5,6 @@ require_once '../conf/const.php';
 require_once MODEL_PATH . 'functions.php';
 //userデータに関するファイル読み込み
 require_once MODEL_PATH . 'user.php';
-//itemデータに関するファイル読み込み
-require_once MODEL_PATH . 'item.php';
 //cartデータに関するファイル読み込み
 require_once MODEL_PATH . 'cart.php';
 
@@ -24,13 +22,18 @@ $token = get_csrf_token();
 
 //データベース接続
 $db = get_db_connect();
+
 //ログインユーザーのデータを取得
 $user = get_login_user($db);
 
-//カートに入っているアイテム表示
-$carts = get_user_carts($db, $user['user_id']);
-//カートの合計金額
-$total_price = sum_carts($carts);
+//$userのtypeがUSER_TYPE_ADMINだった場合
+if ($user['type'] === USER_TYPE_ADMIN){
+  //管理者ページ
+  $orders = get_all_order($db);
+} else {
+  //購入履歴表示
+  $orders = get_user_orders($db, $user['user_id']);
+}
 
 //ビューの読み込み
-include_once VIEW_PATH . 'cart_view.php';
+include_once '../view/order_view.php';

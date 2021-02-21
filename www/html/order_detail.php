@@ -5,8 +5,6 @@ require_once '../conf/const.php';
 require_once MODEL_PATH . 'functions.php';
 //userデータに関するファイル読み込み
 require_once MODEL_PATH . 'user.php';
-//itemデータに関するファイル読み込み
-require_once MODEL_PATH . 'item.php';
 //cartデータに関するファイル読み込み
 require_once MODEL_PATH . 'cart.php';
 
@@ -19,18 +17,33 @@ if(is_logined() === false){
   redirect_to(LOGIN_URL);
 }
 
-//トークン生成
-$token = get_csrf_token();
-
 //データベース接続
 $db = get_db_connect();
+
 //ログインユーザーのデータを取得
 $user = get_login_user($db);
 
-//カートに入っているアイテム表示
-$carts = get_user_carts($db, $user['user_id']);
-//カートの合計金額
-$total_price = sum_carts($carts);
+//postデータの取得
+$order_id = get_post('order_id');
+$token = get_post('token');
+
+//トークンチェック
+if(is_valid_csrf_token($token) === false){
+  //ログインページにリダイレクト
+  redirect_to(LOGIN_URL);
+}
+
+//購入履歴表示
+$order = get_user_order($db, $order_id);
+
+//$userのtypeがUSER_TYPE_ADMINじゃない場合かつ$order_id内のuser_idと一致しない
+if ($user['type'] !== USER_TYPE_ADMIN && $order['user_id'] !== $user['user_id']){
+  //ログインページにリダイレクト
+  redirect_to(LOGIN_URL);
+}
+
+//購入明細表示
+$details = get_user_order_detail($db, $order_id);
 
 //ビューの読み込み
-include_once VIEW_PATH . 'cart_view.php';
+include_once '../view/order_detail_view.php';
